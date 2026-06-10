@@ -136,13 +136,30 @@ python .veil\setup_veil.py C:\path\to\private_key.txt
    ```
    The wizard will check your dependencies, let you choose which file patterns to encrypt (e.g., `*.md`, `secrets/**`), generate or select an `age` key pair, and configure the git filters.
 
-3. **Commit the configuration:**
-   After the setup finishes, commit the newly generated `.gitattributes` and `.veil/` directory to save the configuration for you and your collaborators.
+3. **Commit the configuration and your protected files:**
+   After the setup finishes, stage the veilgit config files **first**, then stage the files
+   matching your chosen patterns. Git will run the `clean` filter (encrypt) on them
+   automatically during `git add`.
+
    ```bash
    cd my-project
+
+   # Step A — stage veilgit config (gitattributes defines which files get the filter)
    git add .gitattributes .veil/
+
+   # Step B — stage the files you want to protect; the clean filter encrypts them now
+   git add docs/private/ secrets/ notes.md   # use your actual paths / patterns
+
+   # Step C — commit everything
    git commit -m "chore: setup veilgit transparent encryption"
    ```
+
+   > **Important:** if any of your protected files were already staged (`git add`-ed) *before*
+   > running `veil_setup.py`, unstage them first so the filter can encrypt them:
+   > ```bash
+   > git rm --cached path/to/file.md
+   > git add path/to/file.md   # re-stage through the clean filter
+   > ```
 
 ## Interface and Usage
 
