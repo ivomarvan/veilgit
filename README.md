@@ -1,6 +1,6 @@
 # Veilgit
 
-`veilgit` is a zero-dependency Python script that adds transparent file encryption to any git repository. 
+`veilgit` is a Python script that adds transparent file encryption to any git repository. 
 
 It automatically encrypts selected files before they are pushed to the remote server, while keeping them readable as plain text on your local machine.
 
