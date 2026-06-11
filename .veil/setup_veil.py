@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Post-clone setup script for veilgit encryption filters."""
+
 import subprocess
 import sys
 from pathlib import Path

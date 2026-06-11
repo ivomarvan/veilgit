@@ -212,6 +212,17 @@ The active language is resolved automatically in the following priority:
 - **Public keys are safe to share.** They are only used to encrypt data, not to decrypt it.
 - **Git history is permanent.** If you accidentally commit a plain text file before configuring `veilgit`, it will remain in the git history even if you encrypt it later. Always verify your `.gitattributes` are set up correctly before committing sensitive data.
 
+## Guides
+
+Step-by-step guides for advanced scenarios are in [`doc/guides/`](doc/guides/):
+
+| Guide | Description |
+|-------|-------------|
+| [Retroactive encryption](doc/guides/retroactive-encryption/retroactive-encryption.en.md) | How to remove plain-text files from git history before making a repository public — using `git filter-repo`. Available in [EN](doc/guides/retroactive-encryption/retroactive-encryption.en.md) · [DE](doc/guides/retroactive-encryption/retroactive-encryption.de.md) · [FR](doc/guides/retroactive-encryption/retroactive-encryption.fr.md) · [ES](doc/guides/retroactive-encryption/retroactive-encryption.sp.md) · [CS](doc/guides/retroactive-encryption/retroactive-encryption.cs.md) · [PL](doc/guides/retroactive-encryption/retroactive-encryption.pl.md) |
+
+> **Tip:** `veil_setup.py` detects this situation automatically and offers to write the
+> guide for your language to `.veil/RETROACTIVE_ENCRYPTION.md` in the target repository.
+
 ## Development
 
 If you want to contribute to `veilgit` or run the test suite:

@@ -630,6 +630,86 @@ TRANSLATIONS: Dict[str, Dict[str, str]] = {
         "argumenty pozycyjne",
     ),
     "options": _t("Optionen", "options", "opciones", "volby", "opcje"),
+    # --- history-plaintext warning ---
+    "⚠  WARNING: Files matching your patterns are already in git history (plain text):": _t(
+        "⚠  WARNUNG: Dateien, die Ihren Mustern entsprechen, sind bereits"
+        " als Klartext in der Git-Historie:",
+        "⚠  AVERTISSEMENT : Des fichiers correspondant à vos motifs sont déjà"
+        " dans l'historique git (texte clair) :",
+        "⚠  ADVERTENCIA: Archivos que coinciden con tus patrones ya están"
+        " en el historial de git (texto plano):",
+        "⚠  VAROVÁNÍ: Soubory odpovídající vašim vzorům jsou již v historii gitu jako prostý text:",
+        "⚠  OSTRZEŻENIE: Pliki pasujące do wzorców są już w historii git jako tekst jawny:",
+    ),
+    "  {file}  ({count} commit(s))": _t(
+        "  {file}  ({count} Commit(s))",
+        "  {file}  ({count} commit(s))",
+        "  {file}  ({count} commit(s))",
+        "  {file}  ({count} commit(s))",
+        "  {file}  ({count} commit(s))",
+    ),
+    "Encrypting these files now protects future commits, but the existing history will remain readable.": _t(  # noqa: E501
+        "Das Verschlüsseln dieser Dateien schützt zukünftige Commits,"
+        " aber die bestehende Historie bleibt lesbar.",
+        "Le chiffrement de ces fichiers protège les futurs commits,"
+        " mais l'historique existant restera lisible.",
+        "Cifrar estos archivos protege los commits futuros,"
+        " pero el historial existente seguirá siendo legible.",
+        "Šifrování těchto souborů chrání budoucí commity, ale stávající historie zůstane čitelná.",
+        "Szyfrowanie tych plików chroni przyszłe commity,"
+        " ale istniejąca historia pozostanie czytelna.",
+    ),
+    "  [c] Continue — encrypt from this point forward (history stays as-is)": _t(
+        "  [c] Fortfahren — ab jetzt verschlüsseln (Historie bleibt unverändert)",
+        "  [c] Continuer — chiffrer à partir de maintenant (l'historique reste inchangé)",
+        "  [c] Continuar — cifrar desde este punto (el historial no cambia)",
+        "  [c] Pokračovat — šifrovat od teď dál (historie zůstane beze změny)",
+        "  [c] Kontynuuj — szyfruj od tego momentu (historia bez zmian)",
+    ),
+    "  [g] Guide — write step-by-step guide to .veil/RETROACTIVE_ENCRYPTION.md and exit": _t(
+        "  [g] Anleitung — Schritt-für-Schritt-Anleitung nach"
+        " .veil/RETROACTIVE_ENCRYPTION.md schreiben und beenden",
+        "  [g] Guide — écrire le guide étape par étape dans"
+        " .veil/RETROACTIVE_ENCRYPTION.md et quitter",
+        "  [g] Guía — escribir guía paso a paso en .veil/RETROACTIVE_ENCRYPTION.md y salir",
+        "  [g] Průvodce — zapsat průvodce do .veil/RETROACTIVE_ENCRYPTION.md a skončit",
+        "  [g] Przewodnik — zapisz przewodnik do .veil/RETROACTIVE_ENCRYPTION.md i wyjdź",
+    ),
+    "  [q] Quit — abort setup without writing anything": _t(
+        "  [q] Beenden — Setup abbrechen, ohne etwas zu schreiben",
+        "  [q] Quitter — abandonner la configuration sans rien écrire",
+        "  [q] Salir — cancelar la configuración sin escribir nada",
+        "  [q] Ukončit — přerušit nastavení bez zápisu čehokoli",
+        "  [q] Zakończ — przerwij konfigurację bez zapisywania",
+    ),
+    "Your choice (c/g/q): ": _t(
+        "Ihre Wahl (c/g/q): ",
+        "Votre choix (c/g/q) : ",
+        "Tu elección (c/g/q): ",
+        "Vaše volba (c/g/q): ",
+        "Twój wybór (c/g/q): ",
+    ),
+    "Guide written: {path}": _t(
+        "Anleitung geschrieben: {path}",
+        "Guide écrit : {path}",
+        "Guía escrita: {path}",
+        "Průvodce zapsán: {path}",
+        "Przewodnik zapisany: {path}",
+    ),
+    "No changes were made to your repository.": _t(
+        "Es wurden keine Änderungen an Ihrem Repository vorgenommen.",
+        "Aucune modification n'a été apportée à votre dépôt.",
+        "No se realizaron cambios en tu repositorio.",
+        "V repozitáři nebyly provedeny žádné změny.",
+        "Nie wprowadzono żadnych zmian do repozytorium.",
+    ),
+    "Invalid choice. Enter c, g, or q.": _t(
+        "Ungültige Wahl. Geben Sie c, g oder q ein.",
+        "Choix invalide. Entrez c, g ou q.",
+        "Opción no válida. Introduce c, g o q.",
+        "Neplatná volba. Zadejte c, g nebo q.",
+        "Nieprawidłowy wybór. Wpisz c, g lub q.",
+    ),
 }
 
 README_VEIL_CONTENT = """# veilgit — transparent encryption in git repository
@@ -870,6 +950,386 @@ Zaszyfrowanych danych nie można odzyskać bez klucza.
 
 https://github.com/FiloSottile/age — narzędzie do szyfrowania
 Projekt veilgit: zobacz README w repozytorium narzędzia `veil_setup.py`
+""",
+)
+
+
+RETROACTIVE_ENCRYPTION_GUIDE_EN = """\
+# Retroactive Encryption: Remove Plain Text from Git History
+
+## Problem
+
+veil_setup.py detected that files matching your chosen patterns already exist in git
+history as plain text. Encrypting from this point protects only future commits.
+To remove plain text from past history, rewrite the git history with git filter-repo.
+
+WARNING: History rewrite is irreversible. All existing clones must be re-cloned
+after you force-push the rewritten history.
+
+## Prerequisites
+
+Install git filter-repo:
+  pip install git-filter-repo
+  # macOS: brew install git-filter-repo
+
+Verify: git filter-repo --version
+
+## Steps
+
+1. Back up the files OUTSIDE the repository:
+   cp -r path/to/sensitive/ /tmp/veilgit_backup/
+
+2. Remove files from the entire git history:
+   git filter-repo --path path/to/sensitive/ --invert-paths
+   (for multiple paths repeat --path for each)
+
+3. Verify removal (must return no output):
+   git log --all --oneline -- path/to/sensitive/
+
+4. Restore files to the working directory:
+   cp -r /tmp/veilgit_backup/ path/to/sensitive/
+
+5. Re-initialize veilgit filters (filter-repo resets .git/config):
+   python veil_setup.py . --reinit
+
+6. Stage config and encrypted files:
+   git add .gitattributes .veil/
+   git add path/to/sensitive/       # clean filter encrypts on git add
+   git commit -m "chore: retroactively encrypt sensitive files"
+
+7. Force-push the rewritten history:
+   git push --force-with-lease origin main
+   (--force-with-lease is safer than --force)
+
+8. Notify collaborators — they must re-clone:
+   git clone <repo_url> && cd <repo>
+   bash .veil/setup_veil.sh /path/to/their_private_key.txt
+
+## Verify Encryption
+
+   git show HEAD:path/to/sensitive/yourfile.md | xxd | head -3
+   # first bytes must be the age encryption header, not plain text
+
+## GitHub Cache
+
+GitHub may retain cached objects for a short period. For maximum security before
+making the repository public, contact GitHub Support to request a cache purge.
+
+See also: doc/guides/retroactive-encryption/ for the full guide in your language.
+"""
+
+TRANSLATIONS[RETROACTIVE_ENCRYPTION_GUIDE_EN] = _t(
+    """\
+# Retroaktive Verschlüsselung: Klartext aus der Git-Historie entfernen
+
+## Problem
+
+veil_setup.py hat festgestellt, dass Dateien, die Ihren Mustern entsprechen, bereits als
+Klartext in der Git-Historie vorhanden sind. Die Verschlüsselung ab jetzt schützt nur
+zukünftige Commits. Um Klartext aus der Vergangenheit zu entfernen, muss die Historie mit
+git filter-repo neu geschrieben werden.
+
+WARNUNG: Das Neuschreiben der Historie ist unwiderruflich. Alle bestehenden Klone
+müssen nach dem Force-Push neu geklont werden.
+
+## Voraussetzungen
+
+git filter-repo installieren:
+  pip install git-filter-repo
+  # macOS: brew install git-filter-repo
+
+Überprüfung: git filter-repo --version
+
+## Schritte
+
+1. Dateien AUSSERHALB des Repositories sichern:
+   cp -r pfad/zu/sensiblen/ /tmp/veilgit_backup/
+
+2. Dateien aus der gesamten Git-Historie entfernen:
+   git filter-repo --path pfad/zu/sensiblen/ --invert-paths
+   (für mehrere Pfade --path wiederholen)
+
+3. Entfernung prüfen (darf keine Ausgabe liefern):
+   git log --all --oneline -- pfad/zu/sensiblen/
+
+4. Dateien ins Arbeitsverzeichnis zurückspielen:
+   cp -r /tmp/veilgit_backup/ pfad/zu/sensiblen/
+
+5. veilgit-Filter neu initialisieren (filter-repo setzt .git/config zurück):
+   python veil_setup.py . --reinit
+
+6. Konfiguration und verschlüsselte Dateien stagen:
+   git add .gitattributes .veil/
+   git add pfad/zu/sensiblen/       # Clean-Filter verschlüsselt bei git add
+   git commit -m "chore: sensible Dateien retroaktiv verschlüsseln"
+
+7. Neu geschriebene Historie force-pushen:
+   git push --force-with-lease origin main
+
+8. Mitarbeiter benachrichtigen — sie müssen neu klonen:
+   git clone <repo_url> && cd <repo>
+   bash .veil/setup_veil.sh /pfad/zum/privaten_schluessel.txt
+
+## Verschlüsselung prüfen
+
+   git show HEAD:pfad/zu/sensiblen/datei.md | xxd | head -3
+   # erste Bytes müssen den age-Header zeigen, kein Klartext
+
+## GitHub-Cache
+
+GitHub kann Objekte kurzzeitig im Cache halten. Kontaktieren Sie den GitHub-Support
+für eine Cache-Bereinigung vor der Veröffentlichung des Repositories.
+
+Siehe auch: doc/guides/retroactive-encryption/ für die vollständige Anleitung.
+""",
+    """\
+# Chiffrement rétroactif : supprimer le texte clair de l'historique git
+
+## Problème
+
+veil_setup.py a détecté que des fichiers correspondant à vos motifs existent déjà dans
+l'historique git en texte clair. Le chiffrement à partir de maintenant ne protège que les
+futurs commits. Pour supprimer le texte clair du passé, réécrivez l'historique avec
+git filter-repo.
+
+AVERTISSEMENT : La réécriture est irréversible. Tous les clones existants doivent
+être re-clonés après le force-push.
+
+## Prérequis
+
+Installer git filter-repo :
+  pip install git-filter-repo
+  # macOS : brew install git-filter-repo
+
+Vérification : git filter-repo --version
+
+## Étapes
+
+1. Sauvegarder les fichiers EN DEHORS du dépôt :
+   cp -r chemin/vers/sensibles/ /tmp/veilgit_backup/
+
+2. Supprimer les fichiers de tout l'historique :
+   git filter-repo --path chemin/vers/sensibles/ --invert-paths
+   (répéter --path pour plusieurs chemins)
+
+3. Vérifier la suppression (ne doit rien afficher) :
+   git log --all --oneline -- chemin/vers/sensibles/
+
+4. Restaurer les fichiers dans le répertoire de travail :
+   cp -r /tmp/veilgit_backup/ chemin/vers/sensibles/
+
+5. Réinitialiser les filtres veilgit (filter-repo réinitialise .git/config) :
+   python veil_setup.py . --reinit
+
+6. Indexer la configuration et les fichiers chiffrés :
+   git add .gitattributes .veil/
+   git add chemin/vers/sensibles/   # le filtre clean chiffre lors du git add
+   git commit -m "chore: chiffrer rétroactivement les fichiers sensibles"
+
+7. Force-pusher l'historique réécrit :
+   git push --force-with-lease origin main
+
+8. Informer les collaborateurs — ils doivent re-cloner :
+   git clone <url_depot> && cd <repo>
+   bash .veil/setup_veil.sh /chemin/vers/cle_privee.txt
+
+## Vérifier le chiffrement
+
+   git show HEAD:chemin/vers/sensibles/fichier.md | xxd | head -3
+   # les premiers octets doivent montrer l'en-tête age, pas du texte clair
+
+## Cache GitHub
+
+GitHub peut conserver des objets en cache pendant un certain temps. Contactez le support
+GitHub pour une purge avant de rendre le dépôt public.
+
+Voir aussi : doc/guides/retroactive-encryption/ pour le guide complet.
+""",
+    """\
+# Cifrado retroactivo: eliminar texto plano del historial de git
+
+## Problema
+
+veil_setup.py detectó que archivos que coinciden con tus patrones ya existen en el
+historial de git como texto plano. Cifrar a partir de ahora solo protege los commits
+futuros. Para eliminar el texto plano del pasado, reescribe el historial con git filter-repo.
+
+ADVERTENCIA: La reescritura es irreversible. Todos los clones existentes deben
+volver a clonarse después del force-push.
+
+## Requisitos previos
+
+Instalar git filter-repo:
+  pip install git-filter-repo
+  # macOS: brew install git-filter-repo
+
+Verificación: git filter-repo --version
+
+## Pasos
+
+1. Hacer copia de seguridad de los archivos FUERA del repositorio:
+   cp -r ruta/a/sensibles/ /tmp/veilgit_backup/
+
+2. Eliminar archivos de todo el historial:
+   git filter-repo --path ruta/a/sensibles/ --invert-paths
+   (repetir --path para varias rutas)
+
+3. Verificar la eliminación (no debe mostrar nada):
+   git log --all --oneline -- ruta/a/sensibles/
+
+4. Restaurar los archivos al directorio de trabajo:
+   cp -r /tmp/veilgit_backup/ ruta/a/sensibles/
+
+5. Reinicializar los filtros veilgit (filter-repo reinicia .git/config):
+   python veil_setup.py . --reinit
+
+6. Añadir al índice la configuración y los archivos cifrados:
+   git add .gitattributes .veil/
+   git add ruta/a/sensibles/        # el filtro clean cifra durante git add
+   git commit -m "chore: cifrar retroactivamente archivos sensibles"
+
+7. Force-push del historial reescrito:
+   git push --force-with-lease origin main
+
+8. Notificar a los colaboradores — deben volver a clonar:
+   git clone <url_repo> && cd <repo>
+   bash .veil/setup_veil.sh /ruta/a/clave_privada.txt
+
+## Verificar el cifrado
+
+   git show HEAD:ruta/a/sensibles/archivo.md | xxd | head -3
+   # los primeros bytes deben mostrar la cabecera age, no texto plano
+
+## Caché de GitHub
+
+GitHub puede retener objetos en caché temporalmente. Contacta con el soporte de GitHub
+para solicitar una purga antes de hacer público el repositorio.
+
+Ver también: doc/guides/retroactive-encryption/ para la guía completa.
+""",
+    """\
+# Retroaktivní šifrování: Odstranění prostého textu z historie gitu
+
+## Problém
+
+veil_setup.py zjistil, že soubory odpovídající vybraným vzorům již existují v historii
+gitu jako prostý text. Šifrování od teď chrání pouze budoucí commity. Chcete-li odstranit
+prostý text z minulosti, musíte přepsat historii gitu pomocí git filter-repo.
+
+VAROVÁNÍ: Přepis historie je nevratný. Všechny existující klony musí být po
+force-push znovu naklonovány.
+
+## Předpoklady
+
+Nainstalujte git filter-repo:
+  pip install git-filter-repo
+  # macOS: brew install git-filter-repo
+
+Ověření: git filter-repo --version
+
+## Postup
+
+1. Zálohujte soubory MIMO repozitář:
+   cp -r cesta/k/citlivym/ /tmp/veilgit_zaloha/
+
+2. Odstraňte soubory z celé historie gitu:
+   git filter-repo --path cesta/k/citlivym/ --invert-paths
+   (pro více cest opakujte --path)
+
+3. Ověřte odstranění (nesmí vrátit žádný výstup):
+   git log --all --oneline -- cesta/k/citlivym/
+
+4. Obnovte soubory do pracovního adresáře:
+   cp -r /tmp/veilgit_zaloha/ cesta/k/citlivym/
+
+5. Znovu inicializujte veilgit filtry (filter-repo resetuje .git/config):
+   python veil_setup.py . --reinit
+
+6. Přidejte konfiguraci a šifrované soubory do indexu:
+   git add .gitattributes .veil/
+   git add cesta/k/citlivym/        # clean filtr šifruje při git add
+   git commit -m "chore: retroaktivně zašifrovat citlivé soubory"
+
+7. Force-push přepsané historie:
+   git push --force-with-lease origin main
+
+8. Upozorněte spolupracovníky — musí znovu naklonovat:
+   git clone <url_repozitare> && cd <repo>
+   bash .veil/setup_veil.sh /cesta/k/soukromemu_klici.txt
+
+## Ověření šifrování
+
+   git show HEAD:cesta/k/citlivym/soubor.md | xxd | head -3
+   # první bajty musí být hlavička age šifrování, ne prostý text
+
+## Cache GitHubu
+
+GitHub může objekty dočasně uchovávat v cache. Kontaktujte GitHub Support a požádejte
+o vyčištění cache před zveřejněním repozitáře.
+
+Viz také: doc/guides/retroactive-encryption/ pro úplného průvodce.
+""",
+    """\
+# Retroaktywne szyfrowanie: usunięcie tekstu jawnego z historii git
+
+## Problem
+
+veil_setup.py wykrył, że pliki pasujące do wzorców istnieją już w historii git jako tekst
+jawny. Szyfrowanie od tego momentu chroni tylko przyszłe commity. Aby usunąć tekst jawny
+z przeszłości, przepisz historię git za pomocą git filter-repo.
+
+OSTRZEŻENIE: Przepisanie historii jest nieodwracalne. Wszystkie istniejące klony muszą
+zostać sklonowane ponownie po force-push.
+
+## Wymagania wstępne
+
+Zainstaluj git filter-repo:
+  pip install git-filter-repo
+  # macOS: brew install git-filter-repo
+
+Weryfikacja: git filter-repo --version
+
+## Kroki
+
+1. Utwórz kopię zapasową plików POZA repozytorium:
+   cp -r sciezka/do/wrazliwych/ /tmp/veilgit_backup/
+
+2. Usuń pliki z całej historii git:
+   git filter-repo --path sciezka/do/wrazliwych/ --invert-paths
+   (powtórz --path dla wielu ścieżek)
+
+3. Zweryfikuj usunięcie (nie powinno zwracać żadnego wyniku):
+   git log --all --oneline -- sciezka/do/wrazliwych/
+
+4. Przywróć pliki do katalogu roboczego:
+   cp -r /tmp/veilgit_backup/ sciezka/do/wrazliwych/
+
+5. Ponownie zainicjuj filtry veilgit (filter-repo resetuje .git/config):
+   python veil_setup.py . --reinit
+
+6. Dodaj konfigurację i zaszyfrowane pliki do indeksu:
+   git add .gitattributes .veil/
+   git add sciezka/do/wrazliwych/   # filtr clean szyfruje podczas git add
+   git commit -m "chore: retroaktywnie zaszyfruj wrażliwe pliki"
+
+7. Force-push przepisanej historii:
+   git push --force-with-lease origin main
+
+8. Powiadom współpracowników — muszą ponownie sklonować:
+   git clone <url_repo> && cd <repo>
+   bash .veil/setup_veil.sh /sciezka/do/klucza_prywatnego.txt
+
+## Weryfikacja szyfrowania
+
+   git show HEAD:sciezka/do/wrazliwych/plik.md | xxd | head -3
+   # pierwsze bajty muszą pokazywać nagłówek szyfrowania age, nie tekst jawny
+
+## Pamięć podręczna GitHub
+
+GitHub może przez krótki czas przechowywać obiekty w pamięci podręcznej. Skontaktuj się
+z pomocą techniczną GitHub w celu wyczyszczenia pamięci przed upublicznieniem repozytorium.
+
+Zobacz też: doc/guides/retroactive-encryption/ — pełny przewodnik.
 """,
 )
 
@@ -1608,6 +2068,125 @@ def print_final_summary(repo_path: Path, config: VeilConfig) -> None:
     print(_("  3. Share .veil/setup_veil.sh with collaborators (not the key!)."))
 
 
+def check_patterns_in_history(repo_path: Path, patterns: List[str]) -> Dict[str, int]:
+    """Return {relative_path: commit_count} for tracked files matching patterns in git history.
+
+    Args:
+        repo_path: Root of the target git repository.
+        patterns: List of .gitattributes-style glob patterns.
+
+    Returns:
+        Mapping from relative file path to the number of commits that touched it.
+        Empty dict when no matches or when git is unavailable.
+    """
+    if not patterns:
+        return {}
+    try:
+        # git ls-files resolves .gitattributes-style globs natively (supports **)
+        ls_result = subprocess.run(
+            ["git", "-C", str(repo_path), "ls-files"] + list(patterns),
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except subprocess.CalledProcessError:
+        return {}
+
+    matched = [f for f in ls_result.stdout.splitlines() if f.strip()]
+    if not matched:
+        return {}
+
+    history: Dict[str, int] = {}
+    for file_path in matched:
+        try:
+            log_result = subprocess.run(
+                ["git", "-C", str(repo_path), "log", "--oneline", "--follow", "--", file_path],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            count = len([line for line in log_result.stdout.splitlines() if line.strip()])
+            if count > 0:
+                history[file_path] = count
+        except subprocess.CalledProcessError:
+            pass
+
+    return history
+
+
+def _write_retroactive_guide(veil_dir: Path) -> Path:
+    """Write the retroactive encryption guide in the current language to .veil/.
+
+    Args:
+        veil_dir: Path to the .veil/ directory inside the target repository.
+
+    Returns:
+        Path to the written guide file.
+    """
+    content = _(RETROACTIVE_ENCRYPTION_GUIDE_EN)
+    guide_path = veil_dir / "RETROACTIVE_ENCRYPTION.md"
+    veil_dir.mkdir(parents=True, exist_ok=True)
+    guide_path.write_text(content, encoding="utf-8")
+    return guide_path
+
+
+def warn_history_plaintext(repo_path: Path, patterns: List[str], veil_dir: Path) -> bool:
+    """Detect plain-text history hits, warn the user, and prompt for c/g/q.
+
+    Called after pattern selection and before any files are written. When files
+    matching the chosen patterns already exist in git history, the user is shown
+    a warning and offered three choices:
+      c — continue setup (encryption from this point; history unchanged)
+      g — write the retroactive encryption guide to .veil/ and exit
+      q — abort setup without writing anything
+
+    Args:
+        repo_path: Root of the target git repository.
+        patterns: Confirmed list of encryption patterns.
+        veil_dir: Path to the .veil/ directory (used for guide output).
+
+    Returns:
+        True if setup should proceed, False if the user chose g or q.
+    """
+    history = check_patterns_in_history(repo_path, patterns)
+    if not history:
+        return True
+
+    print()
+    print(_("⚠  WARNING: Files matching your patterns are already in git history (plain text):"))
+    print()
+    for file_path, count in sorted(history.items()):
+        print(_("  {file}  ({count} commit(s))").format(file=file_path, count=count))
+    print()
+    print(
+        _(
+            "Encrypting these files now protects future commits,"
+            " but the existing history will remain readable."
+        )
+    )
+    print()
+    print(_("Options:"))
+    print(_("  [c] Continue — encrypt from this point forward (history stays as-is)"))
+    print(_("  [g] Guide — write step-by-step guide to .veil/RETROACTIVE_ENCRYPTION.md and exit"))
+    print(_("  [q] Quit — abort setup without writing anything"))
+    print()
+
+    while True:
+        choice = input(_("Your choice (c/g/q): ")).strip().lower()
+        if choice in ("c", "continue"):
+            return True
+        if choice in ("g", "guide"):
+            guide_path = _write_retroactive_guide(veil_dir)
+            print()
+            print(_("Guide written: {path}").format(path=guide_path))
+            print(_("No changes were made to your repository."))
+            return False
+        if choice in ("q", "quit"):
+            print(_("Aborted."))
+            return False
+        print(_("Invalid choice. Enter c, g, or q."))
+
+
 def run_interactive_setup(repo_path: Path, ctx: DryRunContext) -> None:
     """Execute the full interactive setup flow (steps 1–6)."""
     repo_path = repo_path.resolve()
@@ -1629,6 +2208,10 @@ def run_interactive_setup(repo_path: Path, ctx: DryRunContext) -> None:
     new_patterns = select_patterns_interactive(repo_path)
     for pattern in new_patterns:
         add_pattern(config, pattern)
+
+    # Detect files already in git history as plain text; let user decide how to proceed.
+    if config.patterns and not warn_history_plaintext(repo_path, config.patterns, veil_dir):
+        return
 
     key_path, public_key = prompt_key_management(repo_name, ctx)
     config.key_path = str(key_path.expanduser())
